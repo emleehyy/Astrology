@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="星盘指引">
+<meta name="theme-color" content="#0F0D0A">
+<title>星盘指引 · Cosmic Guide</title>
+
+<!-- iOS splash / icon fallback via inline SVG as data URI -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%230F0D0A'/%3E%3Ccircle cx='90' cy='90' r='72' fill='none' stroke='%23B8860B' stroke-width='1.5'/%3E%3Ccircle cx='90' cy='90' r='52' fill='none' stroke='%23B8860B' stroke-width='0.8' stroke-dasharray='4 4'/%3E%3Ctext x='90' y='100' text-anchor='middle' font-size='52' fill='%23B8860B'%3E✦%3C/text%3E%3C/svg%3E">
+
+<style>
+/* ─── TOKENS ─── */
+:root {
+  --ink: #0F0D0A;
+  --ink2: #1A1612;
+  --paper: #F5F0E8;
+  --paper2: #EDE7D6;
+  --paper3: #E4DBC6;
+  --gold: #B8860B;
+  --gold2: #D4A843;
+  --gold-pale: #F0E4B8;
+  --red: #8B2E2E;
+  --teal: #2A6B62;
+  --purple: #4A3470;
+  --muted: #6B6355;
+  --border: rgba(184,134,11,0.22);
+  --border2: rgba(184,134,11,0.45);
+  --safe-top: env(safe-area-inset-top, 44px);
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* ─── RESET ─── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height:100%; }
+body {
+  height:100%;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* ─── APP SHELL ─── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ─── STATUS BAR SPACER ─── */
+.status-bar {
+  height: var(--safe-top);
+  background: var(--ink);
+  flex-shrink: 0;
+}
+
+/* ─── TOP BAR ─── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px 10px;
+  background: var(--ink);
+  border-bottom: 1px solid rgba(184,134,11,0.15);
+  flex-shrink: 0;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.app-glyph {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.app-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--paper);
+  letter-spacing: -0.3px;
+}
+
+.app-name-cn {
+  font-size: 11px;
+  color: var(--gold2);
+  letter-spacing: 2px;
+  display: block;
+  margin-top: -1px;
+}
+
+.date-chip {
+  font-size: 11px;
+  color: var(--gold2);
+  background: rgba(184,134,11,0.12);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ─── NAV TABS ─── */
+.nav-tabs {
+  display: flex;
+  background: var(--ink2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display:none; }
+
+.nav-tab {
+  flex: 1;
+  min-width: 70px;
+  padding: 10px 4px 9px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  color: rgba(245,240,232,0.45);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.nav-tab.active {
+  color: var(--gold2);
+  border-bottom-color: var(--gold2);
+}
+
+/* ─── SCROLL AREA ─── */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* ─── SCREENS ─── */
+.screen { display: none; padding: 0 0 calc(20px + var(--safe-bottom)); }
+.screen.active { display: block; }
+
+/* ─── HOME SCREEN ─── */
+.hero {
+  background: linear-gradient(160deg, #1A1228 0%, var(--ink) 60%);
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184,134,11,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-week {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold2);
+  margin-bottom: 6px;
+}
+
+.hero-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--paper);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 3px;
+}
+
+.hero-cn {
+  font-size: 13px;
+  color: rgba(245,240,232,0.5);
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+}
+
+.triad {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.triad-chip {
+  font-size: 11px;
+  background: rgba(184,134,11,0.14);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  color: var(--gold2);
+}
+
+/* Moon phase bar */
+.moon-bar {
+  margin: 16px 20px 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.moon-bar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.moon-phase-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--paper);
+}
+
+.moon-phase-cn {
+  font-size: 10px;
+  color: rgba(245,240,232,0.5);
+  letter-spacing: 1px;
+}
+
+.moon-phase-glyph {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.moon-progress-track {
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.moon-progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--gold), var(--gold2));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* Section card */
+.section-card {
+  margin: 14px 16px 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.card-icon.c { background: rgba(42,107,98,0.25); border: 1px solid rgba(42,107,98,0.4); }
+.card-icon.m { background: rgba(184,134,11,0.2); border: 1px solid rgba(184,134,11,0.35); }
+.card-icon.l { background: rgba(139,46,46,0.2); border: 1px solid rgba(139,46,46,0.35); }
+.card-icon.f { background: rgba(74,52,112,0.25); border: 1px solid rgba(74,52,112,0.4); }
+.card-icon.p { background: rgba(184,134,11,0.15); border: 1px solid rgba(184,134,11,0.3); }
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--paper);
+  line-height: 1.2;
+}
+
+.card-title-cn {
+  font-size: 10px;
+  color: rgba(245,240,232,0.45);
+  letter-spacing: 1.5px;
+}
+
+.card-arrow {
+  color: rgba(245,240,232,0.3);
+  font-size: 16px;
+  transition: transform 0.25s;
+}
+
+.card-body {
+  padding: 0 16px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.25s ease;
+}
+
+.card-body.open {
+  padding: 14px 16px 16px;
+  max-height: 800px;
+}
+
+.card-header.open .card-arrow {
+  transform: rotate(90deg);
+}
+
+/* Insight block inside card */
+.insight-pill {
+  background: rgba(184,134,11,0.1);
+  border: 1px solid rgba(184,134,11,0.25);
+  border-radius: 10px;
+  padding: 11px 13px;
+  margin-bottom: 12px;
+}
+
+.insight-label {
+  font-size: 8px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold2);
+  margin-bottom: 5px;
+}
+
+.insight-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(245,240,232,0.9);
+}
+
+.insight-cn {
+  font-size: 11px;
+  color: rgba(245,240,232,0.45);
+  letter-spacing: 0.5px;
+  margin-top: 5px;
+  line-height: 1.7;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 6px;
+}
+
+/* Actions list */
+.actions-label {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 9px;
+}
+
+.action-row {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 9px;
+  margin-bottom: 11px;
+}
+
+.action-row:last-child { margin-bottom: 0; }
+
+.action-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold2);
+  padding-top: 1px;
+}
+
+.action-body {}
+
+.action-en {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--paper);
+}
+
+.action-cn {
+  font-size: 11px;
+  color: rgba(245,240,232,0.45);
+  letter-spacing: 0.3px;
+  margin-top: 3px;
+  line-height: 1.65;
+}
+
+.when-chip {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 1px;
+  background: rgba(184,134,11,0.15);
+  color: var(--gold2);
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin-top: 4px;
+}
+
+.when-chip.warn {
+  background: rgba(139,46,46,0.15);
+  color: #C47070;
+}
+
+/* ─── WEEK SCREEN ─── */
+.week-hero {
+  background: linear-gradient(160deg, #1A1228 0%, var(--ink) 70%);
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.week-hero-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--paper);
+  margin-bottom: 3px;
+  letter-spacing: -0.3px;
+}
+
+.week-hero-cn {
+  font-size: 11px;
+  color: rgba(245,240,232,0.45);
+  letter-spacing: 2px;
+}
+
+.week-hero-sub {
+  font-size: 11px;
+  color: var(--gold2);
+  margin-top: 8px;
+}
+
+/* Day timeline */
+.day-list {
+  padding: 14px 16px 0;
+}
+
+.day-item {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.day-left {
+  text-align: right;
+  padding-top: 3px;
+  padding-right: 12px;
+  border-right: 2px solid var(--border);
+}
+
+.day-left.hot { border-right-color: var(--gold2); }
+.day-left.warn { border-right-color: #8B2E2E; }
+
+.day-name {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(245,240,232,0.4);
+  text-transform: uppercase;
+}
+
+.day-name.hot { color: var(--gold2); }
+.day-name.warn { color: #C47070; }
+
+.day-date-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(245,240,232,0.5);
+  line-height: 1;
+}
+
+.day-date-num.hot { color: var(--gold2); }
+
+.day-right {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 13px;
+  margin-bottom: 2px;
+}
+
+.day-energy {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--paper);
+  margin-bottom: 3px;
+}
+
+.day-action {
+  font-size: 12px;
+  color: rgba(245,240,232,0.55);
+  line-height: 1.5;
+}
+
+.day-action-cn {
+  font-size: 10px;
+  color: rgba(245,240,232,0.35);
+  letter-spacing: 0.5px;
+  margin-top: 3px;
+}
+
+/* Priority list */
+.priority-list {
+  padding: 14px 16px 0;
+}
+
+.priority-title {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold2);
+  margin-bottom: 10px;
+}
+
+.priority-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+}
+
+.priority-num {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold2);
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.priority-text { font-size: 13px; line-height: 1.5; color: var(--paper); }
+.priority-cn { font-size: 11px; color: rgba(245,240,232,0.4); margin-top: 3px; letter-spacing: 0.3px; }
+
+/* Write prompts */
+.write-prompts {
+  margin: 14px 16px 0;
+}
+
+.write-card {
+  background: rgba(42,107,98,0.1);
+  border: 1px solid rgba(42,107,98,0.3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 9px;
+}
+
+.write-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.write-prompt {
+  font-size: 13px;
+  color: var(--paper);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.write-cn {
+  font-size: 10px;
+  color: rgba(245,240,232,0.4);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* ─── CHART SCREEN ─── */
+.chart-section {
+  padding: 16px 16px 0;
+}
+
+.chart-section-title {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold2);
+  margin-bottom: 12px;
+}
+
+.triad-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.triad-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+}
+
+.triad-icon {
+  font-size: 24px;
+  line-height: 1;
+  padding-top: 4px;
+  text-align: center;
+}
+
+.triad-sign {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--paper);
+  margin-bottom: 2px;
+}
+
+.triad-sign-cn {
+  font-size: 10px;
+  color: var(--gold2);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.triad-wiring {
+  font-size: 12px;
+  color: rgba(245,240,232,0.6);
+  line-height: 1.55;
+}
+
+.triad-shadow {
+  font-size: 11px;
+  color: #C47070;
+  font-style: italic;
+  margin-top: 5px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding-top: 5px;
+}
+
+/* Bazi */
+.bazi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.bazi-cell {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 6px;
+  text-align: center;
+}
+
+.bazi-cell.day { border-color: var(--gold2); background: rgba(184,134,11,0.1); }
+
+.bazi-stem { font-size: 20px; color: var(--paper); line-height: 1; }
+.bazi-branch { font-size: 20px; color: #A98ECC; line-height: 1; margin-top: 2px; }
+.bazi-cell.day .bazi-stem { color: var(--gold2); }
+.bazi-cell-lbl { font-size: 9px; color: rgba(245,240,232,0.4); letter-spacing: 1px; margin-top: 4px; }
+
+/* Block list */
+.block-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.block-item {
+  background: rgba(139,46,46,0.1);
+  border-left: 2px solid var(--red);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 13px;
+  font-size: 12px;
+  color: rgba(245,240,232,0.8);
+  line-height: 1.5;
+}
+
+.block-cn {
+  font-size: 10px;
+  color: rgba(245,240,232,0.4);
+  margin-top: 3px;
+  letter-spacing: 0.3px;
+}
+
+/* Natal chart SVG */
+.chart-svg-wrap {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+/* ─── ORACLE SCREEN ─── */
+.oracle-hero {
+  background: linear-gradient(160deg, #1A1228 0%, var(--ink) 70%);
+  padding: 28px 24px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.oracle-glyph {
+  font-size: 40px;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.oracle-quote {
+  font-size: 18px;
+  font-style: italic;
+  color: var(--paper);
+  line-height: 1.55;
+  margin-bottom: 10px;
+  letter-spacing: -0.2px;
+}
+
+.oracle-cn {
+  font-size: 13px;
+  color: rgba(245,240,232,0.5);
+  letter-spacing: 2px;
+  line-height: 1.9;
+}
+
+.tara-section-header {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold2);
+  margin: 20px 16px 10px;
+}
+
+.tara-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 0 16px;
+}
+
+.tara-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 15px;
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 11px;
+}
+
+.tara-card.center { border-color: rgba(184,134,11,0.5); background: rgba(184,134,11,0.06); }
+
+.tara-glyph { font-size: 26px; line-height: 1; padding-top: 2px; text-align: center; }
+
+.tara-pos { font-size: 9px; letter-spacing: 2px; color: var(--gold2); text-transform: uppercase; margin-bottom: 3px; }
+.tara-name { font-size: 14px; font-weight: 600; color: var(--paper); margin-bottom: 4px; }
+.tara-action { font-size: 12px; color: rgba(245,240,232,0.6); line-height: 1.5; }
+.tara-cn { font-size: 10px; color: rgba(245,240,232,0.35); margin-top: 4px; letter-spacing: 0.3px; }
+
+/* Ruling codes */
+.ruling-codes {
+  margin: 16px 16px 0;
+  background: var(--ink2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.ruling-code-title {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--gold2);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.ruling-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.ruling-row:last-child { margin-bottom: 0; }
+
+.ruling-glyph {
+  font-size: 18px;
+  width: 26px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ruling-text {
+  font-size: 12px;
+  color: rgba(245,240,232,0.7);
+  line-height: 1.5;
+}
+
+.ruling-cn {
+  font-size: 10px;
+  color: rgba(245,240,232,0.35);
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
+
+/* ─── PROTECTOR SECTION ─── */
+.protector-box {
+  margin: 14px 16px 0;
+  background: rgba(74,52,112,0.15);
+  border: 1px solid rgba(74,52,112,0.35);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.protector-glyph { font-size: 32px; margin-bottom: 8px; display: block; }
+.protector-name { font-size: 18px; font-weight: 600; color: var(--paper); letter-spacing: 3px; margin-bottom: 4px; }
+.protector-sub { font-size: 11px; color: rgba(245,240,232,0.45); letter-spacing: 1px; line-height: 1.6; }
+
+/* ─── BOTTOM NAV ─── */
+.bottom-nav {
+  display: flex;
+  background: var(--ink2);
+  border-top: 1px solid var(--border);
+  padding-bottom: var(--safe-bottom);
+  flex-shrink: 0;
+}
+
+.bottom-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.bottom-btn-icon { font-size: 20px; line-height: 1; }
+.bottom-btn-label { font-size: 9px; letter-spacing: 0.5px; color: rgba(245,240,232,0.35); text-transform: uppercase; }
+.bottom-btn.active .bottom-btn-label { color: var(--gold2); }
+.bottom-btn.active .bottom-btn-icon { filter: brightness(1.3); }
+
+/* ─── INSTALL BANNER ─── */
+.install-banner {
+  margin: 14px 16px 0;
+  background: rgba(42,107,98,0.12);
+  border: 1px solid rgba(42,107,98,0.35);
+  border-radius: 12px;
+  padding: 13px 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.install-icon { font-size: 22px; flex-shrink: 0; line-height: 1; padding-top: 2px; }
+
+.install-text {
+  font-size: 12px;
+  color: rgba(245,240,232,0.75);
+  line-height: 1.5;
+}
+
+.install-text strong { color: var(--paper); display: block; margin-bottom: 2px; }
+
+.install-close {
+  background: none;
+  border: none;
+  color: rgba(245,240,232,0.4);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 0 0 8px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Status bar spacer for iOS notch -->
+  <div class="status-bar"></div>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="app-glyph">✦</span>
+      <div>
+        <div class="app-name">Cosmic Guide</div>
+        <span class="app-name-cn">星盘指引</span>
+      </div>
+    </div>
+    <div class="date-chip" id="topDateChip">—</div>
+  </div>
+
+  <!-- NAV TABS -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="goScreen('home',this)">This Month<br>本月</button>
+    <button class="nav-tab" onclick="goScreen('week',this)">This Week<br>本周</button>
+    <button class="nav-tab" onclick="goScreen('chart',this)">Your Chart<br>星盘</button>
+    <button class="nav-tab" onclick="goScreen('oracle',this)">Oracle<br>神谕</button>
+  </div>
+
+  <!-- SCROLL AREA -->
+  <div class="scroll-area">
+
+    <!-- ════════ HOME / MONTHLY ════════ -->
+    <div class="screen active" id="screen-home">
+
+      <!-- iOS Install Banner -->
+      <div class="install-banner" id="installBanner">
+        <span class="install-icon">📲</span>
+        <div class="install-text">
+          <strong>Add to Home Screen · 添加到主屏幕</strong>
+          Tap <strong>Share ↑</strong> → <strong>Add to Home Screen</strong> to install as an app. Guidance refreshes every Sunday automatically.
+          <br><span style="font-size:10px; color:rgba(245,240,232,0.4); letter-spacing:0.5px;">点击底部分享按钮 → 添加到主屏幕。每周日自动更新。</span>
+        </div>
+        <button class="install-close" onclick="document.getElementById('installBanner').style.display='none'">×</button>
+      </div>
+
+      <!-- HERO -->
+      <div class="hero" style="margin-top:14px;">
+        <div class="hero-week" id="monthLabel">June 2026 · 六月</div>
+        <div class="hero-title" id="monthTitle">The Builder's<br>Month</div>
+        <div class="hero-cn">建造者之月 · 被看见之年</div>
+        <div class="triad">
+          <span class="triad-chip">☀ Libra 天秤</span>
+          <span class="triad-chip">🌙 Pisces 双鱼</span>
+          <span class="triad-chip">↑ Capricorn 摩羯</span>
+        </div>
+      </div>
+
+      <!-- MOON PHASE -->
+      <div class="moon-bar" id="moonBar">
+        <div class="moon-bar-top">
+          <div>
+            <div class="moon-phase-name" id="moonPhaseName">Waxing Gibbous</div>
+            <div class="moon-phase-cn" id="moonPhaseCn">盈凸月</div>
+          </div>
+          <div class="moon-phase-glyph" id="moonGlyph">🌔</div>
+        </div>
+        <div class="moon-progress-track">
+          <div class="moon-progress-fill" id="moonFill" style="width:70%"></div>
+        </div>
+      </div>
+
+      <!-- ASPECT CARDS -->
+      <!-- Career -->
+      <div class="section-card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <div class="card-title-row">
+            <div class="card-icon c">⚡</div>
+            <div>
+              <div class="card-title">Career & Transition</div>
+              <div class="card-title-cn">事业 · 转型</div>
+            </div>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+        <div class="card-body">
+          <div class="insight-pill">
+            <div class="insight-label">Your Code Decoded</div>
+            <div class="insight-text">The "fine job" feeling is Capricorn Rising doing its job. But 壬水 sitting on 午火 means your creator fire is suppressed. 2026 丙午 year adds fire. The pressure is productive — your code is saying the employee chapter has an expiry date.</div>
+            <div class="insight-cn">「工作还好」是摩羯上升在尽职。壬水坐午火，你的创造者本性被压制。丙午年火上加火——这是命运在告诉你，打工人篇章正在走向终结。</div>
+          </div>
+          <div class="actions-label">↳ Actions This Month</div>
+          <div class="action-row">
+            <div class="action-num">01</div>
+            <div class="action-body">
+              <div class="action-en">Write your bridge condition: "I will transition to full-time building when ___." Give Capricorn Rising the structure it needs to eventually leap.</div>
+              <div class="action-cn">写下过渡条件：「当___时，我全力投入自己的事业。」</div>
+              <span class="when-chip">Do: June 3–7</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="action-num">02</div>
+            <div class="action-body">
+              <div class="action-en">Identify ONE skill or connection from your current job that feeds your business. Deliberately extract it this month. Someone there is a future client or partner.</div>
+              <div class="action-cn">找出现职中可以喂养你事业的一个技能或人脉，本月刻意提取它。</div>
+              <span class="when-chip">Ongoing · June</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="action-num">03</div>
+            <div class="action-body">
+              <div class="action-en">After June 8 (Mercury direct): send the message, make the pitch, post the content you've been sitting on. The Blue Moon cleared your throat. Mercury direct opens the mic.</div>
+              <div class="action-cn">六月八日后：发出那条消息，提出提案，发布一直憋着的内容。</div>
+              <span class="when-chip">Key: June 8–12</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Money -->
+      <div class="section-card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <div class="card-title-row">
+            <div class="card-icon m">◈</div>
+            <div>
+              <div class="card-title">Money & Runway</div>
+              <div class="card-title-cn">财运 · 过渡资金</div>
+            </div>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+        <div class="card-body">
+          <div class="insight-pill">
+            <div class="insight-label">Your Code Decoded</div>
+            <div class="insight-text">壬午 is "water on fire" — energetically generous, easily spent. Venus in H2 this month says: save quietly. The money you protect now is the freedom you buy later. The transition requires a runway, not a leap of faith.</div>
+            <div class="insight-cn">壬午是「水在火上」——天性慷慨，钱容易花出去。金星在第二宫：悄悄存钱。你现在保护的钱，就是你未来购买的自由。</div>
+          </div>
+          <div class="actions-label">↳ Actions This Month</div>
+          <div class="action-row">
+            <div class="action-num">01</div>
+            <div class="action-body">
+              <div class="action-en">Open a separate "builder fund" account this month. Even ¥500/month. The act of separating money for your future self activates the energy. Give your money a mission.</div>
+              <div class="action-cn">开设单独的「创业基金」账户。哪怕每月500元。给你的钱一个使命。</div>
+              <span class="when-chip">Do: Before June 20</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="action-num">02</div>
+            <div class="action-body">
+              <div class="action-en">If your project has any monetizable component, price it this month — even if you don't launch yet. Putting a number on your work changes how you carry it.</div>
+              <div class="action-cn">给你的项目定价——哪怕还没发布。给你的工作标上价格，会改变你的内心状态。</div>
+              <span class="when-chip">Do: June 8–15</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Love -->
+      <div class="section-card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <div class="card-title-row">
+            <div class="card-icon l">♡</div>
+            <div>
+              <div class="card-title">Love & The Pattern</div>
+              <div class="card-title-cn">感情 · 打破旧模式</div>
+            </div>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+        <div class="card-body">
+          <div class="insight-pill">
+            <div class="insight-label">Your Code Decoded</div>
+            <div class="insight-text">No serious relationship isn't coincidence — it's the Libra-Pisces bind. Libra needs perfect conditions. Pisces Moon merges completely or not at all. Together they create beautiful connections that never fully land. Look at the pattern.</div>
+            <div class="insight-cn">没有认真恋爱不是巧合——是天秤-双鱼绑定。天秤需要完美条件；双鱼要么完全融合要么什么都不是。两者合力让连接永远无法落地。</div>
+          </div>
+          <div class="actions-label">↳ Actions This Month</div>
+          <div class="action-row">
+            <div class="action-num">01</div>
+            <div class="action-body">
+              <div class="action-en">Write (for yourself only): "In a serious relationship, I'm actually afraid of ___." Not what sounds reasonable — what's true. Pisces Moon speaks truths in writing.</div>
+              <div class="action-cn">仅为自己写下：「在认真的关系里，我真正害怕的是___。」</div>
+              <span class="when-chip">Do: June 1–3</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="action-num">02</div>
+            <div class="action-body">
+              <div class="action-en">June 15–22 is your love peak. If someone is already in the picture — have the actual conversation you've been avoiding. Don't waste the window on hints.</div>
+              <div class="action-cn">六月十五至二十二日是感情高峰。有人在视线里——进行你一直回避的那个真正的对话。</div>
+              <span class="when-chip">Window: June 15–22</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="action-num">03</div>
+            <div class="action-body">
+              <div class="action-en">Practice one small act of direct expression per week. Stop optimizing for "not making it awkward." It's a muscle. Build it now.</div>
+              <div class="action-cn">每周练习一次直接表达。停止优化「不让气氛尴尬」。这是一块肌肉，先练好它。</div>
+              <span class="when-chip">Ongoing</span>
+              <span class="when-chip warn">Watch: people-pleasing</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Family -->
+      <div class="section-card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <div class="card-title-row">
+            <div class="card-icon f">⌂</div>
+            <div>
+              <div class="card-title">Family & Roots</div>
+              <div class="card-title-cn">家庭 · 根源</div>
+            </div>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+        <div class="card-body">
+          <div class="insight-pill">
+            <div class="insight-label">Your Code Decoded</div>
+            <div class="insight-text">Your transition from employee to builder has a family dimension you haven't spoken aloud. Your Capricorn Rising was partly built as an answer to family expectation. The 丙子 year pillar means ancestral patterns are running as background code in your decisions. Name it to change it.</div>
+            <div class="insight-cn">你的转型有一个没说出口的家庭维度。年柱丙子意味着祖先模式正在你的决策中作为后台程序运行。说出它，才能改变它。</div>
+          </div>
+          <div class="actions-label">↳ Actions This Month</div>
+          <div class="action-row">
+            <div class="action-num">01</div>
+            <div class="action-body">
+              <div class="action-en">Have one honest conversation with a parent this month — not about your plans, but about their story. What did they want to build and didn't? Understanding their fear map helps you stop running from a ghost that isn't yours.</div>
+              <div class="action-cn">与父母进行一次真实对话——不是关于你的计划，而是关于他们的故事。理解他们的恐惧地图，停止逃避不属于你的幽灵。</div>
+              <span class="when-chip">Do: June 10–14</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="action-num">02</div>
+            <div class="action-body">
+              <div class="action-en">Light incense before the solstice (June 21). Ask 千手观音 specifically: what is mine to carry forward, and what to release.</div>
+              <div class="action-cn">夏至前上香。具体祈求千手观音：哪些是我该继承的，哪些是我该放下的。</div>
+              <span class="when-chip">Do: Before June 21</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Purpose -->
+      <div class="section-card" style="margin-bottom:0;">
+        <div class="card-header" onclick="toggleCard(this)">
+          <div class="card-title-row">
+            <div class="card-icon p">✦</div>
+            <div>
+              <div class="card-title">Soul Purpose</div>
+              <div class="card-title-cn">灵魂使命</div>
+            </div>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+        <div class="card-body">
+          <div class="insight-pill">
+            <div class="insight-label">Your Code Decoded</div>
+            <div class="insight-text">"I know this isn't a forever job" — that sentence is your North Node speaking. Most people never say that about a comfortable job. Your chart is coded for meaningful creation shared with others. The 丙午 year is your visibility year. Your purpose belongs in the world, not in private notebooks.</div>
+            <div class="insight-cn">「我知道这不是一辈子的工作」——这是你的北交点在说话。丙午年是可见度年。你的使命属于世界，不在私人笔记本里。</div>
+          </div>
+          <div class="actions-label">↳ Actions This Month</div>
+          <div class="action-row">
+            <div class="action-num">01</div>
+            <div class="action-body">
+              <div class="action-en">Write your project in one sentence: "I help [who] do [what] by [how]." Say it to one person this week. The Blue Moon activated H3 — your voice, your message.</div>
+              <div class="action-cn">用一句话定义你的项目：「我帮助[谁]通过[怎做]实现[什么]。」本周对一个人说出来。</div>
+              <span class="when-chip">Do: June 1–8</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="action-num">02</div>
+            <div class="action-body">
+              <div class="action-en">Take one small irreversible public step before June 21 (Solstice). Post something. Register something. Tell someone outside your inner circle. One public act commits the energy.</div>
+              <div class="action-cn">在夏至前迈出一步不可逆的公开行动。发布、注册、告知圈外的人。</div>
+              <span class="when-chip">Deadline: June 21 🌞</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="action-num">03</div>
+            <div class="action-body">
+              <div class="action-en">Find one person 3–5 years ahead of where you want to be and reach out. Not for advice — for connection. Your next breakthrough will come through a person, not a plan.</div>
+              <div class="action-cn">找一个比你目标早3-5年的人，主动联系。不是寻求建议——而是建立连接。</div>
+              <span class="when-chip">Do: June 14–25</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end home screen -->
+
+    <!-- ════════ WEEK SCREEN ════════ -->
+    <div class="screen" id="screen-week">
+
+      <div class="week-hero">
+        <div class="week-hero-title" id="weekRangeTitle">Week of June 1–7</div>
+        <div class="week-hero-cn" id="weekRangeCn">六月第一周 · 蓝月亮能量落地</div>
+        <div class="week-hero-sub" id="weekTheme">Theme: Process · Clarify · Prepare — before Mercury Direct opens the mic Jun 8</div>
+      </div>
+
+      <!-- Day timeline -->
+      <div class="day-list" id="dayList">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Priority order -->
+      <div class="priority-list" style="margin-top:14px;">
+        <div class="priority-title">This Week's Priority Order · 本周优先顺序</div>
+        <div class="priority-item">
+          <div class="priority-num">①</div>
+          <div>
+            <div class="priority-text">Write the one-sentence project definition — this is the needle, everything else is thread.</div>
+            <div class="priority-cn">写下项目的一句话定义——这是针，其余都是线。</div>
+          </div>
+        </div>
+        <div class="priority-item">
+          <div class="priority-num">②</div>
+          <div>
+            <div class="priority-text">Write the bridge condition — give Capricorn Rising the structure it needs to eventually leap.</div>
+            <div class="priority-cn">写下过渡条件——给摩羯上升它需要的框架。</div>
+          </div>
+        </div>
+        <div class="priority-item">
+          <div class="priority-num">③</div>
+          <div>
+            <div class="priority-text">Journal the love pattern question — not for anyone else, for the data.</div>
+            <div class="priority-cn">写下感情模式问题——不为别人，为数据。</div>
+          </div>
+        </div>
+        <div class="priority-item">
+          <div class="priority-num">④</div>
+          <div>
+            <div class="priority-text">Show up somewhere Saturday — your next significant person is waiting in a place you almost didn't go.</div>
+            <div class="priority-cn">周六去某个地方——你下一个重要的人，在你几乎没去的那个场合等着你。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Three writes -->
+      <div class="write-prompts">
+        <div class="priority-title" style="margin-bottom:10px;">Three Writing Prompts · 三个书写练习</div>
+        <div class="write-card">
+          <div class="write-label">Write 1 — Mon or Wed</div>
+          <div class="write-prompt">"My project is ___. It helps ___ by ___."</div>
+          <div class="write-cn">我的项目是___，它帮助___通过___。</div>
+        </div>
+        <div class="write-card">
+          <div class="write-label">Write 2 — Wednesday</div>
+          <div class="write-prompt">"I will transition when ___. My timeline is ___."</div>
+          <div class="write-cn">我将在___时转型，我的时间线是___。</div>
+        </div>
+        <div class="write-card">
+          <div class="write-label">Write 3 — Mon or Tue</div>
+          <div class="write-prompt">"In relationships, I'm actually afraid of ___."</div>
+          <div class="write-cn">在关系里，我真正害怕的是___。</div>
+        </div>
+      </div>
+
+    </div><!-- end week screen -->
+
+    <!-- ════════ CHART SCREEN ════════ -->
+    <div class="screen" id="screen-chart">
+
+      <div class="chart-section">
+        <div class="chart-section-title">Your Source Code · 命运密码解读</div>
+
+        <!-- Natal chart SVG -->
+        <div class="chart-svg-wrap">
+          <svg viewBox="0 0 300 300" width="260" height="260" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="150" cy="150" r="140" fill="none" stroke="rgba(184,134,11,0.2)" stroke-width="1"/>
+            <circle cx="150" cy="150" r="112" fill="none" stroke="rgba(184,134,11,0.12)" stroke-width="0.5"/>
+            <circle cx="150" cy="150" r="80" fill="none" stroke="rgba(169,142,204,0.25)" stroke-width="1"/>
+            <circle cx="150" cy="150" r="50" fill="rgba(184,134,11,0.03)" stroke="rgba(184,134,11,0.18)" stroke-width="0.5"/>
+            <circle cx="150" cy="150" r="18" fill="rgba(15,13,10,0.7)" stroke="rgba(184,134,11,0.3)" stroke-width="0.5"/>
+            <line x1="150" y1="10" x2="150" y2="290" stroke="rgba(184,134,11,0.1)" stroke-width="0.5"/>
+            <line x1="10" y1="150" x2="290" y2="150" stroke="rgba(184,134,11,0.1)" stroke-width="0.5"/>
+            <line x1="41" y1="57" x2="259" y2="243" stroke="rgba(184,134,11,0.07)" stroke-width="0.5"/>
+            <line x1="57" y1="41" x2="243" y2="259" stroke="rgba(184,134,11,0.07)" stroke-width="0.5"/>
+            <line x1="41" y1="243" x2="259" y2="57" stroke="rgba(184,134,11,0.07)" stroke-width="0.5"/>
+            <line x1="57" y1="259" x2="243" y2="41" stroke="rgba(184,134,11,0.07)" stroke-width="0.5"/>
+            <!-- Signs -->
+            <text x="262" y="155" text-anchor="middle" font-size="12" fill="rgba(196,123,138,0.7)">♈</text>
+            <text x="245" y="108" text-anchor="middle" font-size="12" fill="rgba(74,155,142,0.7)">♉</text>
+            <text x="210" y="73" text-anchor="middle" font-size="12" fill="rgba(169,142,204,0.8)">♊</text>
+            <text x="163" y="57" text-anchor="middle" font-size="12" fill="rgba(74,155,142,0.7)">♋</text>
+            <text x="115" y="57" text-anchor="middle" font-size="12" fill="rgba(201,168,76,0.85)">♌</text>
+            <text x="77" y="73" text-anchor="middle" font-size="12" fill="rgba(74,155,142,0.7)">♍</text>
+            <text x="44" y="108" text-anchor="middle" font-size="12" fill="rgba(169,142,204,0.9)">♎</text>
+            <text x="30" y="155" text-anchor="middle" font-size="12" fill="rgba(196,123,138,0.7)">♏</text>
+            <text x="44" y="200" text-anchor="middle" font-size="12" fill="rgba(169,142,204,0.7)">♐</text>
+            <text x="77" y="236" text-anchor="middle" font-size="12" fill="rgba(74,155,142,0.7)">♑</text>
+            <text x="125" y="252" text-anchor="middle" font-size="12" fill="rgba(169,142,204,0.7)">♒</text>
+            <text x="175" y="252" text-anchor="middle" font-size="12" fill="rgba(74,155,142,0.7)">♓</text>
+            <!-- ASC line -->
+            <line x1="150" y1="150" x2="213" y2="213" stroke="rgba(184,134,11,0.55)" stroke-width="1.2" stroke-dasharray="4 2"/>
+            <text x="222" y="228" text-anchor="middle" font-size="9" fill="#D4A843" letter-spacing="0.5">ASC</text>
+            <!-- Sun Libra H7 -->
+            <circle cx="66" cy="156" r="7" fill="rgba(184,134,11,0.15)" stroke="#D4A843" stroke-width="1.5"/>
+            <text x="66" y="161" text-anchor="middle" font-size="10" fill="#D4A843">☀</text>
+            <!-- Moon Pisces H3 -->
+            <circle cx="158" cy="80" r="6" fill="rgba(169,142,204,0.15)" stroke="#A98ECC" stroke-width="1.5"/>
+            <text x="158" y="85" text-anchor="middle" font-size="10" fill="#A98ECC">☽</text>
+            <!-- Venus -->
+            <circle cx="108" cy="195" r="5" fill="rgba(196,123,138,0.15)" stroke="#C47B8A" stroke-width="1"/>
+            <text x="108" y="199" text-anchor="middle" font-size="9" fill="#C47B8A">♀</text>
+            <!-- Mars -->
+            <circle cx="207" cy="207" r="5" fill="rgba(196,123,138,0.1)" stroke="#E05050" stroke-width="1"/>
+            <text x="207" y="211" text-anchor="middle" font-size="9" fill="#E05050">♂</text>
+            <!-- Saturn -->
+            <circle cx="198" cy="100" r="5" fill="rgba(184,192,204,0.1)" stroke="#B8C0CC" stroke-width="1"/>
+            <text x="198" y="104" text-anchor="middle" font-size="9" fill="#B8C0CC">♄</text>
+            <!-- Jupiter -->
+            <circle cx="220" cy="183" r="5" fill="rgba(184,134,11,0.15)" stroke="#D4A843" stroke-width="1"/>
+            <text x="220" y="187" text-anchor="middle" font-size="9" fill="#D4A843">♃</text>
+            <!-- aspect lines -->
+            <line x1="66" y1="156" x2="158" y2="80" stroke="rgba(74,155,142,0.25)" stroke-width="0.8" stroke-dasharray="3 2"/>
+            <line x1="158" y1="80" x2="198" y2="100" stroke="rgba(169,142,204,0.2)" stroke-width="0.7" stroke-dasharray="2 3"/>
+            <!-- center -->
+            <text x="150" y="155" text-anchor="middle" font-size="12" fill="rgba(184,134,11,0.5)">✦</text>
+            <text x="150" y="288" text-anchor="middle" font-size="7" fill="rgba(184,134,11,0.4)" letter-spacing="1">1996.09.26 · 14:52 · JINHUA</text>
+          </svg>
+        </div>
+
+        <!-- Triad cards -->
+        <div class="triad-cards">
+          <div class="triad-card">
+            <div class="triad-icon">☀️</div>
+            <div>
+              <div class="triad-sign">Libra · H7</div>
+              <div class="triad-sign-cn">天秤座 · 第七宫</div>
+              <div class="triad-wiring">Wired for co-creation. You don't want success alone — you want it to be beautiful and mutual. The delay on your business isn't laziness. It's Libra needing a collaborator before fully committing.</div>
+              <div class="triad-shadow">Shadow: Deciding by consensus → paralysis. This is your #1 block.</div>
+            </div>
+          </div>
+          <div class="triad-card">
+            <div class="triad-icon">🌅</div>
+            <div>
+              <div class="triad-sign">Capricorn Rising</div>
+              <div class="triad-sign-cn">摩羯座上升</div>
+              <div class="triad-wiring">The world sees composed, structured, reliable. You got the safe job because this energy is real. But Cap Rising also runs "I must earn the right to be seen before launching."</div>
+              <div class="triad-shadow">Shadow: Preparation as procrastination. You're already ready.</div>
+            </div>
+          </div>
+          <div class="triad-card">
+            <div class="triad-icon">🌙</div>
+            <div>
+              <div class="triad-sign">Pisces Moon · H3</div>
+              <div class="triad-sign-cn">双鱼座月亮 · 第三宫</div>
+              <div class="triad-wiring">Your gut-brain is extraordinarily powerful. When something feels right, it usually is. In H3 it speaks through words and ideas. Write. Speak. Create. That's how it talks to you.</div>
+              <div class="triad-shadow">Shadow: Mistaking intuition for anxiety. One pulls forward, one pulls back.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bazi -->
+        <div class="chart-section-title" style="margin-top:4px;">八字四柱 · Ba Zi Four Pillars</div>
+        <div class="bazi-grid">
+          <div class="bazi-cell">
+            <div class="bazi-stem">丙</div>
+            <div class="bazi-branch">子</div>
+            <div class="bazi-cell-lbl">年 Year</div>
+          </div>
+          <div class="bazi-cell">
+            <div class="bazi-stem">庚</div>
+            <div class="bazi-branch">戌</div>
+            <div class="bazi-cell-lbl">月 Month</div>
+          </div>
+          <div class="bazi-cell day">
+            <div class="bazi-stem">壬</div>
+            <div class="bazi-branch">午</div>
+            <div class="bazi-cell-lbl">日 Day ✦</div>
+          </div>
+          <div class="bazi-cell">
+            <div class="bazi-stem">辛</div>
+            <div class="bazi-branch">未</div>
+            <div class="bazi-cell-lbl">时 Hour</div>
+          </div>
+        </div>
+        <div style="background:rgba(184,134,11,0.08); border:1px solid rgba(184,134,11,0.2); border-radius:8px; padding:11px 13px; margin-bottom:14px; font-size:12px; color:rgba(245,240,232,0.7); line-height:1.6;">
+          <strong style="color:#D4A843;">壬午 Day Pillar:</strong> Water master on Fire. You contain contradictions: the need for stability AND the drive to create. This isn't a flaw — it's your engine. 2026 午 year doubles the fire underneath. The pressure is productive.
+          <div style="font-size:10px; color:rgba(245,240,232,0.4); margin-top:5px; letter-spacing:0.3px;">壬水日主坐午火——稳定需求与创造驱动并存。这不是缺陷，是你的引擎。丙午年的火在下面加倍。</div>
+        </div>
+
+        <!-- Blocks -->
+        <div class="chart-section-title">Your Three Blocks · 需破解的三个程序</div>
+        <div class="block-list">
+          <div class="block-item">
+            <strong>Libra delay loop:</strong> Weighing → not deciding → waiting for better info → weighing again.
+            <div class="block-cn">天秤拖延循环：权衡→不决定→等更多信息→再权衡。</div>
+          </div>
+          <div class="block-item">
+            <strong>Capricorn prep trap:</strong> "I'll launch when it's ready" = never. Readiness is a feeling, not a state.
+            <div class="block-cn">摩羯准备陷阱：「准备好了再发」=永远不发。</div>
+          </div>
+          <div class="block-item">
+            <strong>Pisces dissolution:</strong> Absorbing others' doubts as your own. Not every worry in the room is yours.
+            <div class="block-cn">双鱼吸收：把别人的疑虑当成自己的——那不属于你。</div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end chart screen -->
+
+    <!-- ════════ ORACLE SCREEN ════════ -->
+    <div class="screen" id="screen-oracle">
+
+      <div class="oracle-hero">
+        <span class="oracle-glyph" id="oracleGlyph">🌕</span>
+        <div class="oracle-quote" id="oracleQuote">"The code was written for you to build, not to wait until you feel ready."</div>
+        <div class="oracle-cn" id="oracleCn">命运密码是为建造而写，<br>不是为等待准备好而写。</div>
+      </div>
+
+      <!-- Tara -->
+      <div class="tara-section-header">Tara Three Cards · 六月塔罗三牌</div>
+      <div class="tara-cards">
+        <div class="tara-card">
+          <div class="tara-glyph">🌊</div>
+          <div>
+            <div class="tara-pos">Past · 过去</div>
+            <div class="tara-name">The High Priestess</div>
+            <div class="tara-action">Stop consulting everyone. You already know. Sit with it.</div>
+            <div class="tara-cn">女祭司：停止问别人。你早已知道答案。</div>
+          </div>
+        </div>
+        <div class="tara-card center">
+          <div class="tara-glyph">⭐</div>
+          <div>
+            <div class="tara-pos">Present · 当下</div>
+            <div class="tara-name">The Star</div>
+            <div class="tara-action">You're in your healing season. Let yourself be refilled before the next push. Don't rush it.</div>
+            <div class="tara-cn">星星：你在疗愈季。在下一次冲刺前先充满自己。</div>
+          </div>
+        </div>
+        <div class="tara-card">
+          <div class="tara-glyph">🌅</div>
+          <div>
+            <div class="tara-pos">Future · 未来</div>
+            <div class="tara-name">The World</div>
+            <div class="tara-action">The cycle closing is a gift. What you seed in June is what you harvest in 2027.</div>
+            <div class="tara-cn">世界：一个周期正在闭合。六月播下的种子，2027年收获。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ruling codes -->
+      <div class="ruling-codes">
+        <div class="ruling-code-title">Your Three Codes · 三重命运密码</div>
+        <div class="ruling-row">
+          <div class="ruling-glyph">♎</div>
+          <div>
+            <div class="ruling-text"><strong style="color:#F5F0E8;">Libra Sun:</strong> Built for co-creation. Find your person, then build together.</div>
+            <div class="ruling-cn">天秤：为共同创造而生。先找到同行者，再一起建造。</div>
+          </div>
+        </div>
+        <div class="ruling-row">
+          <div class="ruling-glyph">♑</div>
+          <div>
+            <div class="ruling-text"><strong style="color:#F5F0E8;">Cap Rising:</strong> Structures liberate you. Build the container, then leap.</div>
+            <div class="ruling-cn">摩羯上升：结构解放你。先建容器，再起跳。</div>
+          </div>
+        </div>
+        <div class="ruling-row">
+          <div class="ruling-glyph">♓</div>
+          <div>
+            <div class="ruling-text"><strong style="color:#F5F0E8;">Pisces Moon:</strong> Your gut already knows. Stop asking. Start moving.</div>
+            <div class="ruling-cn">双鱼月亮：你的直觉早就知道了。停止询问，开始行动。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Protector -->
+      <div class="protector-box">
+        <span class="protector-glyph">🙏</span>
+        <div class="protector-name">千手观音</div>
+        <div class="protector-sub">生肖鼠守护佛 · Protector of the Rat<br>Ask for: clarity of voice and direction<br>声音的清晰与方向 · 初一十五宜礼拜</div>
+      </div>
+
+    </div><!-- end oracle screen -->
+
+  </div><!-- end scroll area -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="bottom-btn active" onclick="goScreen('home',this); setBottomActive(this)">
+      <span class="bottom-btn-icon">🌙</span>
+      <span class="bottom-btn-label">Month</span>
+    </button>
+    <button class="bottom-btn" onclick="goScreen('week',this); setBottomActive(this)">
+      <span class="bottom-btn-icon">📅</span>
+      <span class="bottom-btn-label">Week</span>
+    </button>
+    <button class="bottom-btn" onclick="goScreen('chart',this); setBottomActive(this)">
+      <span class="bottom-btn-icon">✦</span>
+      <span class="bottom-btn-label">Chart</span>
+    </button>
+    <button class="bottom-btn" onclick="goScreen('oracle',this); setBottomActive(this)">
+      <span class="bottom-btn-icon">🔮</span>
+      <span class="bottom-btn-label">Oracle</span>
+    </button>
+  </div>
+
+</div><!-- end app -->
+
+<script>
+/* ─── NAVIGATION ─── */
+function goScreen(id, triggerBtn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  // sync top tabs
+  const topTabs = document.querySelectorAll('.nav-tab');
+  const map = ['home','week','chart','oracle'];
+  topTabs.forEach((t, i) => t.classList.toggle('active', map[i] === id));
+  // scroll to top
+  document.querySelector('.scroll-area').scrollTop = 0;
+}
+
+function setBottomActive(btn) {
+  document.querySelectorAll('.bottom-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ─── ACCORDION ─── */
+function toggleCard(header) {
+  const body = header.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  // close all
+  document.querySelectorAll('.card-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.card-header').forEach(h => h.classList.remove('open'));
+  if (!isOpen) {
+    body.classList.add('open');
+    header.classList.add('open');
+  }
+}
+
+/* ─── DATE / TIME LOGIC ─── */
+const BIRTH = { year:1996, month:9, day:26, hour:14, min:52 };
+
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function updateDateChip() {
+  const now = new Date();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('topDateChip').textContent = months[now.getMonth()] + ' ' + now.getDate();
+}
+
+/* ─── MOON PHASE ─── */
+function getMoonPhase(date) {
+  const known = new Date(2000,0,6,18,14,0); // known new moon
+  const ms = date - known;
+  const days = ms / 86400000;
+  const cycle = 29.53058867;
+  const phase = ((days % cycle) + cycle) % cycle;
+  const pct = phase / cycle;
+
+  if (phase < 1.85)  return { name:'New Moon', cn:'新月', glyph:'🌑', pct:0.02 };
+  if (phase < 7.38)  return { name:'Waxing Crescent', cn:'蛾眉月', glyph:'🌒', pct: phase/14.77 };
+  if (phase < 9.22)  return { name:'First Quarter', cn:'上弦月', glyph:'🌓', pct:0.5 };
+  if (phase < 14.77) return { name:'Waxing Gibbous', cn:'盈凸月', glyph:'🌔', pct: 0.5 + (phase-9.22)/11.1 };
+  if (phase < 16.61) return { name:'Full Moon', cn:'满月', glyph:'🌕', pct:1 };
+  if (phase < 22.15) return { name:'Waning Gibbous', cn:'亏凸月', glyph:'🌖', pct: 1 - (phase-16.61)/11.1 };
+  if (phase < 23.99) return { name:'Last Quarter', cn:'下弦月', glyph:'🌗', pct:0.5 };
+  if (phase < 29.53) return { name:'Waning Crescent', cn:'残月', glyph:'🌘', pct: (29.53-phase)/14.77 };
+  return { name:'New Moon', cn:'新月', glyph:'🌑', pct:0.02 };
+}
+
+function updateMoon() {
+  const m = getMoonPhase(new Date());
+  document.getElementById('moonPhaseName').textContent = m.name;
+  document.getElementById('moonPhaseCn').textContent = m.cn;
+  document.getElementById('moonGlyph').textContent = m.glyph;
+  document.getElementById('moonFill').style.width = Math.round(m.pct * 100) + '%';
+}
+
+/* ─── WEEKLY CONTENT ENGINE ─── */
+// Weekly data keyed by ISO week number
+const weeklyData = {
+  // Week of June 1 (week 23 of 2026)
+  '2026-W23': {
+    range: 'June 1–7', rangeCn: '六月第一周 · 蓝月亮能量落地',
+    theme: 'Theme: Process · Clarify · Prepare — before Mercury Direct Jun 8',
+    days: [
+      { d:'MON', n:1, hot:true,  energy:'Blue Moon Energy Peaks',   action:'Do not fill the day. Journal what surfaced. Your Pisces Moon answer is already there.', cn:'蓝月亮顶峰。不要塞满今天。把浮现的感受写下来。' },
+      { d:'TUE', n:2, warn:true, energy:'Financial Caution',        action:'Avoid decisions. Audit instead: list income, expenses, builder fund gap. Look, don\'t act.', cn:'避免财务决定。盘点收入、支出和创业基金缺口。看，不行动。' },
+      { d:'WED', n:3, hot:true,  energy:'Write & Crystallize',      action:'Write the bridge condition. Write the one-sentence project description. Don\'t share yet.', cn:'写下过渡条件和项目一句话描述。还不需要分享，先让它清晰。' },
+      { d:'THU', n:4, hot:false, energy:'Strategic Rest',           action:'Saturn is high. Don\'t grind. Restore your nervous system. Best ideas come from stillness.', cn:'土星能量高，摩羯想拼命——不要。最好的想法来自静止。' },
+      { d:'FRI', n:5, warn:true, energy:'Love Friction Alert',      action:'Venus under pressure. Choose honest over smooth. One true sentence beats ten careful ones.', cn:'注意感情摩擦。选择诚实而非顺滑。' },
+      { d:'SAT', n:6, hot:true,  energy:'Go Out · Make Contact',    action:'Best social energy. Attend something, meet someone. Your next business collaborator may appear.', cn:'本周最佳社交能量。出门，建立连接。你的合作者可能就在今天出现。' },
+      { d:'SUN', n:7, hot:false, energy:'Set 3 Intentions',        action:'Write 3 intentions for Mercury Direct week: "I will [action] by [date]." The mic opens tomorrow.', cn:'写下三个水星直行周的具体意图。明天麦克风打开。' }
+    ]
+  },
+  // Week of June 8 (week 24)
+  '2026-W24': {
+    range: 'June 8–14', rangeCn: '六月第二周 · 水星直行 · 行动周',
+    theme: 'Mercury Direct! This is the action week. Send it. Post it. Pitch it.',
+    days: [
+      { d:'MON', n:8,  hot:true,  energy:'Mercury Direct ⚡',       action:'Send the message you\'ve been sitting on. Make the outreach. The communication gate is open.', cn:'水星直行。发出那条消息，进行那次联络。沟通之门开启。' },
+      { d:'TUE', n:9,  hot:false, energy:'Build Momentum',         action:'Follow up on any message sent Monday. Keep the energy moving — don\'t overthink replies.', cn:'跟进周一发出的消息。保持能量流动，不要过度思考回复。' },
+      { d:'WED', n:10, hot:true,  energy:'Family Healing Window',  action:'Reach out to a parent — not about your plans, but to hear their story. Ask about their dreams.', cn:'家庭疗愈窗口。联系父母——问他们的故事和梦想，不是讲你的计划。' },
+      { d:'THU', n:11, hot:true,  energy:'New Moon · Plant Seeds', action:'New Moon! Write 3 intentions on paper. Specific: "I will [do] by [date]." Burn or fold and keep.', cn:'新月！写下三个心愿，要具体：「我将在[日期]前[行动]。」' },
+      { d:'FRI', n:12, hot:true,  energy:'Income Window Opens',    action:'Best day to invoice, ask for a raise, pitch a service, or price your project. Venus smiles.', cn:'最佳开口要钱日。开发票、要求涨薪、定价项目——金星在微笑。' },
+      { d:'SAT', n:13, hot:false, energy:'Creative Recharge',      action:'No work mode. Feed your Pisces Moon: music, art, water, nature. Creativity needs input.', cn:'创意充电日。不要工作模式。喂养双鱼月亮：音乐、艺术、水、自然。' },
+      { d:'SUN', n:14, hot:false, energy:'Review & Prep',          action:'Sunday reset. What moved this week? What\'s the one thing to push next week? Write it down.', cn:'周日复盘。本周什么推动了？下周最重要的一件事是什么？写下来。' }
+    ]
+  },
+  // Week of June 15 (week 25)
+  '2026-W25': {
+    range: 'June 15–21', rangeCn: '六月第三周 · 感情峰值 · 夏至',
+    theme: 'Love peak + Summer Solstice. Your visibility window is open. Be seen.',
+    days: [
+      { d:'MON', n:15, hot:true,  energy:'Love Peak Begins',       action:'Love energy peaks this week. If someone is in the picture — reach out. Don\'t wait for them.', cn:'感情高峰开始。如果有人在视线里——主动联系，不要等对方。' },
+      { d:'TUE', n:16, hot:true,  energy:'Visibility Energy',      action:'Post something about your project online. Even small. Capricorn Rising wants to hide — override it.', cn:'可见度能量。发布一些关于你项目的东西。摩羯上升想躲——覆盖它。' },
+      { d:'WED', n:17, hot:false, energy:'Depth Conversations',    action:'Schedule a real one-on-one conversation with someone who matters. Libra Sun activates here.', cn:'安排一次真实的一对一深度对话，与一个重要的人。天秤太阳在这里激活。' },
+      { d:'THU', n:18, hot:true,  energy:'Career Peak Day',        action:'Best career day of June. Push the project forward, make the ask, follow up boldly.', cn:'六月事业最佳日。推进项目，大胆提出要求，跟进。' },
+      { d:'FRI', n:19, hot:false, energy:'Prepare for Solstice',   action:'Reflect: what\'s the one irreversible public act you can do by Sunday? Plan it today.', cn:'为夏至准备。思考：你能在周日前做的那个不可逆公开行动是什么？今天计划它。' },
+      { d:'SAT', n:20, hot:true,  energy:'Social & Romance',       action:'Date energy is high. Go somewhere new. Spontaneous plans today lead to memorable moments.', cn:'约会能量高。去一个新地方。今天的自发计划会带来难忘时刻。' },
+      { d:'SUN', n:21, hot:true,  energy:'Summer Solstice 🌞',     action:'DEADLINE: Take your irreversible public step today. Post. Register. Tell someone. It counts.', cn:'夏至截止日：迈出那个不可逆的公开行动。发布、注册、告知圈外的人。' }
+    ]
+  },
+  // Week of June 22 (week 26)
+  '2026-W26': {
+    range: 'June 22–28', rangeCn: '六月第四周 · 整合收获',
+    theme: 'Harvest what was planted. Consolidate, reflect, prepare for July.',
+    days: [
+      { d:'MON', n:22, hot:false, energy:'Post-Solstice Integration', action:'Solstice energy lands. Don\'t rush — let the week before settle. Journal what shifted.', cn:'夏至能量落地。不要着急——让上周的行动沉淀。写日记记录发生了什么变化。' },
+      { d:'TUE', n:23, hot:false, energy:'Relationship Clarity',     action:'Feelings from the love peak week become clearer now. Trust what you see, not what you hope.', cn:'感情高峰周的感受现在变得更清晰。相信你看到的，不是你希望的。' },
+      { d:'WED', n:24, hot:true,  energy:'Connection & Mentors',    action:'Reach out to the person 3-5 years ahead of where you want to be. One message today.', cn:'联系那个比你目标早3-5年的人。今天发出一条消息。' },
+      { d:'THU', n:25, hot:false, energy:'Creative Work',            action:'Deep work day. No meetings if possible. Build something in your project — even 2 hours counts.', cn:'深度工作日。尽量不开会。在你的项目里建造一些东西——哪怕两小时。' },
+      { d:'FRI', n:26, hot:false, energy:'Review Intentions',        action:'Look back at your June 11 New Moon intentions. How far have you moved? What needs a push?', cn:'回顾六月十一日新月心愿。你推进了多少？哪件事需要再推一把？' },
+      { d:'SAT', n:27, hot:true,  energy:'Career Momentum',         action:'Best day to follow up on any business conversations. Bold energy — don\'t play it safe today.', cn:'事业跟进佳日。大胆能量——今天不要保守。' },
+      { d:'SUN', n:28, hot:false, energy:'Prepare for July',        action:'Set 3 intentions for July. What chapter closes in June? Name it. What opens in July? Name that too.', cn:'为七月准备。六月哪个篇章关闭？七月哪个篇章开启？各自命名它。' }
+    ]
+  }
+};
+
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+  return d.getUTCFullYear() + '-W' + String(weekNo).padStart(2,'0');
+}
+
+function renderWeek() {
+  const now = new Date();
+  // Find Sunday start of current week
+  const dow = now.getDay(); // 0=Sun
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - dow);
+
+  const key = getISOWeek(weekStart);
+  const data = weeklyData[key] || weeklyData['2026-W23'];
+
+  document.getElementById('weekRangeTitle').textContent = 'Week of ' + data.range;
+  document.getElementById('weekRangeCn').textContent = data.rangeCn;
+  document.getElementById('weekTheme').textContent = data.theme;
+
+  const list = document.getElementById('dayList');
+  list.innerHTML = '';
+
+  data.days.forEach(day => {
+    const isToday = (new Date()).getDate() === day.n && (new Date()).getMonth() === 5;
+    const hotClass = day.hot ? 'hot' : (day.warn ? 'warn' : '');
+
+    list.innerHTML += `
+      <div class="day-item">
+        <div class="day-left ${hotClass}">
+          <div class="day-name ${hotClass}">${day.d}</div>
+          <div class="day-date-num ${hotClass}" style="${isToday ? 'text-decoration:underline;' : ''}">${day.n}</div>
+        </div>
+        <div class="day-right" style="${isToday ? 'border-color:rgba(184,134,11,0.5);' : ''}">
+          <div class="day-energy">${day.energy}${isToday ? ' ← Today' : ''}</div>
+          <div class="day-action">${day.action}</div>
+          <div class="day-action-cn">${day.cn}</div>
+        </div>
+      </div>`;
+  });
+}
+
+/* ─── ROTATING ORACLES ─── */
+const oracles = [
+  { quote: '"The code was written for you to build, not to wait until you feel ready."', cn: '命运密码是为建造而写，\n不是为等待准备好而写。', glyph: '🌕' },
+  { quote: '"Capricorn builds the ladder. Libra knows who to climb with. Pisces sees the top before anyone else."', cn: '摩羯建造梯子。天秤知道和谁一起攀登。\n双鱼在所有人之前就看见了山顶。', glyph: '✦' },
+  { quote: '"壬水 does not fight the fire — it becomes steam. That is how you rise."', cn: '壬水不对抗火——它成为蒸汽。\n这就是你上升的方式。', glyph: '🌊' },
+  { quote: '"The transition from employee to builder is not a leap. It is a series of irreversible small acts."', cn: '从打工人到建造者的转变不是一次跳跃，\n而是一系列不可逆的小行动。', glyph: '⚡' },
+  { quote: '"Your Pisces Moon already answered the question you keep asking. Go back and listen to the first feeling."', cn: '你的双鱼月亮已经回答了你反复在问的问题。\n回去，听第一个感受。', glyph: '🌙' }
+];
+
+function setOracle() {
+  // Rotate weekly (Sunday reset)
+  const weekNum = parseInt(getISOWeek(new Date()).split('-W')[1]);
+  const o = oracles[weekNum % oracles.length];
+  document.getElementById('oracleGlyph').textContent = o.glyph;
+  document.getElementById('oracleQuote').textContent = o.quote;
+  document.getElementById('oracleCn').textContent = o.cn;
+}
+
+/* ─── MONTH LABEL ─── */
+function updateMonthLabel() {
+  const now = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const cnMonths = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  document.getElementById('monthLabel').textContent = months[now.getMonth()] + ' ' + now.getFullYear() + ' · ' + cnMonths[now.getMonth()];
+}
+
+/* ─── INIT ─── */
+updateDateChip();
+updateMoon();
+renderWeek();
+setOracle();
+updateMonthLabel();
+
+// Hide install banner if already in standalone mode
+if (window.navigator.standalone) {
+  document.getElementById('installBanner').style.display = 'none';
+}
+</script>
+</body>
+</html>
