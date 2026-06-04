@@ -27,7 +27,7 @@ jobs:
 
       - name: Generate weekly guidance
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.astrology_key }}
         run: node generate.js
 
       - name: Commit and push updated index.html
