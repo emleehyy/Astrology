@@ -4,7 +4,10 @@ on:
   schedule:
     # Every Sunday at 8:00 AM Beijing time (00:00 UTC)
     - cron: '0 0 * * 0'
-  workflow_dispatch: # allows manual trigger from GitHub UI
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   update-guide:
@@ -20,7 +23,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Generate weekly guidance
         env:
