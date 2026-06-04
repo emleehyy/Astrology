@@ -73,7 +73,7 @@ function callClaude(prompt) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': process.env.astrology_key,
         'anthropic-version': '2023-06-01',
         'Content-Length': Buffer.byteLength(body)
       }
