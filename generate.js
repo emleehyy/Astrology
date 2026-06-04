@@ -73,7 +73,7 @@ function callClaude(prompt) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.astrology_key,
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
         'Content-Length': Buffer.byteLength(body)
       }
@@ -99,7 +99,7 @@ function callClaude(prompt) {
 function buildPrompt(week, moon) {
   return `You are a master astrologer combining Western astrology and Chinese Ba Zi (四柱命理). 
 
-Generate a deeply personalized weekly cosmic guidance for this specific person. Respond ONLY with a valid JSON object — no markdown fences, no preamble, nothing else.
+Generate deeply personalized weekly cosmic guidance. CRITICAL: Respond ONLY with valid JSON. No markdown fences, no text outside JSON. Use only straight double quotes. No smart quotes. Escape apostrophes with \u0027 or rephrase. No newlines inside string values. Ensure all brackets are closed.
 
 PERSON'S BIRTH DATA:
 - Birth: ${BIRTH.date}, ${BIRTH.time}, ${BIRTH.location}
@@ -636,12 +636,35 @@ async function main() {
 
   let data;
   try {
-    // Strip any accidental markdown fences
-    const clean = rawText.replace(/```json|```/g, '').trim();
-    data = JSON.parse(clean);
+    // Step 1: strip markdown fences
+    let clean = rawText.replace(/```json|```/g, '').trim();
+
+    // Step 2: extract JSON object if wrapped in extra text
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if (jsonMatch) clean = jsonMatch[0];
+
+    // Step 3: fix common Claude JSON issues
+    // Replace smart/curly quotes with straight quotes
+    clean = clean
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2013\u2014]/g, '-');
+
+    // Step 4: try parsing
+    try {
+      data = JSON.parse(clean);
+    } catch(e1) {
+      // Step 5: if still failing, ask Claude to fix it
+      console.log('⚠️ First parse failed, asking Claude to clean the JSON...');
+      const fixPrompt = `The following JSON has a syntax error. Return ONLY the corrected valid JSON, nothing else, no markdown:\n\n${clean}`;
+      const fixed = await callClaude(fixPrompt);
+      const fixedClean = fixed.replace(/```json|```/g, '').trim();
+      const fixedMatch = fixedClean.match(/\{[\s\S]*\}/);
+      data = JSON.parse(fixedMatch ? fixedMatch[0] : fixedClean);
+    }
   } catch(e) {
     console.error('❌ JSON parse failed:', e.message);
-    console.error('Raw:', rawText.substring(0, 500));
+    console.error('Raw (first 800 chars):', rawText.substring(0, 800));
     process.exit(1);
   }
 
