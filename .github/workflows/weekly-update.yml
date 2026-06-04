@@ -1,1 +1,36 @@
-weekly-update.yml
+name: Weekly Cosmic Guide Update
+
+on:
+  schedule:
+    # Every Sunday at 8:00 AM Beijing time (00:00 UTC)
+    - cron: '0 0 * * 0'
+  workflow_dispatch: # allows manual trigger from GitHub UI
+
+jobs:
+  update-guide:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate weekly guidance
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node generate.js
+
+      - name: Commit and push updated index.html
+        run: |
+          git config user.name "Cosmic Guide Bot"
+          git config user.email "actions@github.com"
+          git add index.html
+          git diff --staged --quiet || git commit -m "🌙 Weekly update: $(date +'%Y-%m-%d')"
+          git push
