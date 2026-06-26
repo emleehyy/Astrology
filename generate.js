@@ -62,7 +62,7 @@ function getMoonPhase(date) {
 function callClaude(systemPrompt, userPrompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       max_tokens: 4000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }]
@@ -84,7 +84,16 @@ function callClaude(systemPrompt, userPrompt) {
       res.on('end', () => {
         try {
           const parsed = JSON.parse(data);
-          if (parsed.error) return reject(new Error(parsed.error.message));
+          if (parsed.error) {
+            console.error("HTTP Status:", res.statusCode);
+            console.error("API Response:", JSON.stringify(parsed, null, 2));
+            return reject(new Error(`${parsed.error.type}: ${parsed.error.message}`));
+          }
+
+          if (!parsed.content || !parsed.content[0]) {
+            return reject(new Error("Unexpected API response: " + data));
+          }
+
           resolve(parsed.content[0].text);
         } catch(e) { reject(e); }
       });
